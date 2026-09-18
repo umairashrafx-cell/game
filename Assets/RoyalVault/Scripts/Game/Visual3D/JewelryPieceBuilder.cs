@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using RoyalVault.Core;
 
@@ -29,6 +30,10 @@ namespace RoyalVault.Game.Visual3D
         /// </summary>
         public static readonly Quaternion PresentationRotation = Quaternion.Euler(-14f, 26f, 0f);
 
+        /// <summary>Stones of the piece currently being assembled, collected for the twinkle.</summary>
+        private static readonly List<MeshRenderer> Stones = new List<MeshRenderer>();
+        private static Material _currentStoneMaterial;
+
         public static GameObject Build(JewelryPiece piece, Transform parent)
         {
             GameObject root = new GameObject("Jewel_" + piece.Material + "_" + piece.Form);
@@ -36,6 +41,9 @@ namespace RoyalVault.Game.Visual3D
 
             Material stone = JewelryMaterialFactory.Stone(piece.Material);
             Material setting = JewelryMaterialFactory.Setting(piece.Material);
+
+            Stones.Clear();
+            _currentStoneMaterial = stone;
 
             switch (piece.Form)
             {
@@ -48,6 +56,7 @@ namespace RoyalVault.Game.Visual3D
                 default:                  BuildPendant(root.transform, stone, setting); break;
             }
 
+            root.AddComponent<JewelryPieceVisual>().Initialise(Stones);
             return root;
         }
 
@@ -71,6 +80,9 @@ namespace RoyalVault.Game.Visual3D
             renderer.receiveShadows = false;
             renderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
             renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.BlendProbes;
+
+            // Anything wearing the stone material twinkles; the metal setting does not.
+            if (material == _currentStoneMaterial) Stones.Add(renderer);
 
             return go;
         }

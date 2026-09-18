@@ -128,6 +128,13 @@ namespace RoyalVault.Game.Visual3D
             piece.transform.localPosition = SlotLocalPosition(slotIndex);
             piece.transform.localRotation = JewelryPieceBuilder.PresentationRotation;
             piece.transform.localScale = Vector3.one * pieceScale;
+
+            // The sway animates around wherever the piece came to rest, so it has to be told
+            // the new angle — otherwise a moved piece drifts back toward its old orientation.
+            JewelryPieceVisual visual = piece.GetComponent<JewelryPieceVisual>();
+            if (visual != null) visual.SetRestRotation(JewelryPieceBuilder.PresentationRotation);
+
+            ApplyFrameState();
         }
 
         public GameObject RemoveTop()
@@ -135,6 +142,7 @@ namespace RoyalVault.Game.Visual3D
             if (_pieces.Count == 0) return null;
             GameObject piece = _pieces[_pieces.Count - 1];
             _pieces.RemoveAt(_pieces.Count - 1);
+            ApplyFrameState();
             return piece;
         }
 
@@ -143,18 +151,38 @@ namespace RoyalVault.Game.Visual3D
             get { return _pieces.Count == 0 ? null : _pieces[_pieces.Count - 1]; }
         }
 
+        private bool _isSealed;
+        private bool _isHighlighted;
+
         public void SetSealed(bool isSealed)
         {
-            _frame.sharedMaterial = isSealed
-                ? JewelryMaterialFactory.TrayFrameSealed()
-                : JewelryMaterialFactory.TrayFrame();
+            _isSealed = isSealed;
+            ApplyFrameState();
         }
 
         public void SetHighlighted(bool highlighted)
         {
-            _frame.sharedMaterial = highlighted
-                ? JewelryMaterialFactory.TrayFrameHighlighted()
-                : JewelryMaterialFactory.TrayFrame();
+            _isHighlighted = highlighted;
+            ApplyFrameState();
+        }
+
+        /// <summary>
+        /// One place decides how the frame looks, from all of its state at once. Previously the
+        /// sealed and highlighted setters each wrote the frame directly and clobbered each other,
+        /// so a tray could lose its gold seal simply by being tapped.
+        /// </summary>
+        private void ApplyFrameState()
+        {
+            if (_isSealed) _frame.sharedMaterial = JewelryMaterialFactory.TrayFrameSealed();
+            else if (_isHighlighted) _frame.sharedMaterial = JewelryMaterialFactory.TrayFrameHighlighted();
+            else if (_pieces.Count == 0) _frame.sharedMaterial = JewelryMaterialFactory.TrayFrameEmpty();
+            else _frame.sharedMaterial = JewelryMaterialFactory.TrayFrame();
+        }
+
+        /// <summary>Re-evaluates the frame after pieces are added or removed.</summary>
+        public void RefreshFrame()
+        {
+            ApplyFrameState();
         }
 
         /// <summary>A short, controlled shake. A rejection should inform, not punish.</summary>

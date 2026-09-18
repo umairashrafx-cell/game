@@ -137,6 +137,16 @@ namespace RoyalVault.Game.Visual3D
             return Create("tray_frame", Hex("B4924F"), 1f, 0.72f, Color.black, 0f);
         }
 
+        /// <summary>
+        /// A waiting, empty tray. Deliberately much dimmer than a tray holding jewelry: with
+        /// every frame at full brightness the empty trays were as loud as the full ones and the
+        /// eye had nowhere to land. Attention should fall on where the pieces actually are.
+        /// </summary>
+        public static Material TrayFrameEmpty()
+        {
+            return Create("tray_frame_empty", Hex("4A3D24"), 1f, 0.55f, Color.black, 0f);
+        }
+
         public static Material TrayFrameSealed()
         {
             return Create("tray_frame_sealed", Hex("F2D48A"), 1f, 0.88f, Hex("F2D48A"), 0.35f);
