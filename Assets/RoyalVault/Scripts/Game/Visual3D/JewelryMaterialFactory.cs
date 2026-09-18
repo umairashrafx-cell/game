@@ -168,6 +168,22 @@ namespace RoyalVault.Game.Visual3D
         }
 
         /// <summary>
+        /// The recessed panel the trays are displayed against. A touch lighter than the
+        /// surrounding stone so the board reads as standing in a lit alcove rather than floating
+        /// in front of a flat wall.
+        /// </summary>
+        public static Material VaultNiche()
+        {
+            return Create("vault_niche", Hex("17100C"), 0f, 0.20f, Color.black, 0f);
+        }
+
+        /// <summary>Polished stone for columns — darker than gold, but still catching highlights.</summary>
+        public static Material VaultStone()
+        {
+            return Create("vault_stone", Hex("191310"), 0.15f, 0.48f, Color.black, 0f);
+        }
+
+        /// <summary>
         /// Bright panels placed behind the camera, where the player never sees them but the
         /// reflection probe does. This is the studio-lighting trick: polished metal looks
         /// expensive because of what it reflects, and a dark room gives it nothing. These give

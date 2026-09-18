@@ -28,7 +28,7 @@ namespace RoyalVault.Game.Visual3D
         {
             Camera camera = BuildCamera(root);
             BuildLighting(root);
-            BuildBackdrop(root);
+            BuildChamber(root);
             BuildReflectors(root);
             BuildReflectionProbe(root);
             BuildPostProcessing(root);
@@ -100,7 +100,33 @@ namespace RoyalVault.Game.Visual3D
             RenderSettings.ambientSkyColor = Hex("D8BC86");
             RenderSettings.ambientEquatorColor = Hex("6A5442");
             RenderSettings.ambientGroundColor = Hex("140F0C");
-            RenderSettings.fog = false;
+
+            // Distance falloff, so the chamber fades into darkness instead of ending at a wall.
+            // Cheap, and it does the job that an expensive volumetric pass otherwise would.
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogColor = Hex("0A0706");
+            RenderSettings.fogStartDistance = 12f;
+            RenderSettings.fogEndDistance = 30f;
+
+            // A pool of warm light on the board itself — the single strongest cue that the
+            // jewelry is lit ON something rather than floating in front of a picture.
+            GameObject spotObject = new GameObject("BoardSpot", typeof(Light));
+            spotObject.transform.SetParent(root, false);
+            spotObject.transform.position = new Vector3(0f, 5.5f, -6.5f);
+            spotObject.transform.rotation = Quaternion.Euler(46f, 0f, 0f);
+
+            // Intensity kept low on purpose. At 26 this blew the alcove out to a bright wash and
+            // destroyed the contrast the jewelry depends on — the pool of light should be felt,
+            // not seen.
+            Light spot = spotObject.GetComponent<Light>();
+            spot.type = LightType.Spot;
+            spot.color = Hex("FFE0AE");
+            spot.intensity = 7f;
+            spot.range = 26f;
+            spot.spotAngle = 70f;
+            spot.innerSpotAngle = 26f;
+            spot.shadows = LightShadows.None;
         }
 
         private static Light MakeLight(Transform root, string name, Color color, float intensity)
@@ -115,15 +141,40 @@ namespace RoyalVault.Game.Visual3D
             return light;
         }
 
-        private static void BuildBackdrop(Transform root)
+        /// <summary>
+        /// The vault chamber itself: floor, rear wall, a lit alcove behind the board and a pair of
+        /// flanking columns.
+        ///
+        /// A single dark panel behind the trays was the weakest part of the look — the board had
+        /// nothing to stand in and the whole scene read as jewelry pasted onto a colour fill.
+        /// Real depth needs surfaces at different distances catching light differently, so this
+        /// stacks four planes between the camera and the back of the room. It is still only about
+        /// a dozen slabs, which costs nothing.
+        /// </summary>
+        private static void BuildChamber(Transform root)
         {
-            // A large panel well behind the board, plus a warmer panel behind that, to give the
-            // vault a sense of receding space instead of a flat colour fill.
-            Panel(root, "VaultWall", new Vector3(40f, 40f, 0.5f), new Vector3(0f, 0f, 9f),
+            // Back of the room.
+            Panel(root, "RearWall", new Vector3(46f, 40f, 0.5f), new Vector3(0f, 0f, 14f),
                   JewelryMaterialFactory.VaultWall());
 
-            Panel(root, "VaultFloorGlow", new Vector3(16f, 9f, 0.5f), new Vector3(0f, -1.2f, 6.2f),
+            // Floor, receding away from the player.
+            Panel(root, "Floor", new Vector3(40f, 0.5f, 34f), new Vector3(0f, -7.6f, 6f),
                   JewelryMaterialFactory.VaultFloor());
+
+            // A subtly lighter panel behind the board. No gold surround: one was tried and it
+            // boxed the whole board in with a second gold rectangle that competed with the tray
+            // frames for the same job. The alcove should be felt as a change in tone, not drawn.
+            Panel(root, "NichePanel", new Vector3(5.6f, 9.5f, 0.3f), new Vector3(0f, 0.2f, 5.3f),
+                  JewelryMaterialFactory.VaultNiche());
+
+            // Dark columns flanking the board. They read as silhouettes rather than objects,
+            // which is all they are for — giving the eye something at an intermediate depth so
+            // the room has layers. Gold capitals were tried and were pure noise at this size.
+            for (int side = -1; side <= 1; side += 2)
+            {
+                Panel(root, "Column" + side, new Vector3(0.9f, 15f, 0.9f),
+                      new Vector3(3.15f * side, 0f, 3.4f), JewelryMaterialFactory.VaultStone());
+            }
         }
 
         /// <summary>
