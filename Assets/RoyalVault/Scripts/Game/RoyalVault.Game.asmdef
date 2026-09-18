@@ -1,0 +1,25 @@
+{
+    "name": "RoyalVault.Game",
+    "rootNamespace": "RoyalVault.Game",
+    "references": [
+        "RoyalVault.Core",
+        "UnityEngine.UI",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "URP_PRESENT"
+        }
+    ],
+    "noEngineReferences": false
+}
